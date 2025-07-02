@@ -4,17 +4,18 @@ import { WORKING_HOURS } from '@/lib/pricing'
 
 export async function GET() {
   try {
-    // Create OAuth2 client for public calendar access
-    const oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET
-    )
-
-    // For public calendar access, we can use API key instead
-    const calendar = google.calendar({ 
-      version: 'v3', 
-      auth: process.env.GOOGLE_API_KEY || oauth2Client 
+    // Use service account for accessing private calendar
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        type: 'service_account',
+        project_id: 'acustica-464717',
+        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        private_key: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      },
+      scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
     })
+
+    const calendar = google.calendar({ version: 'v3', auth })
     
     // Get events from today onwards
     const today = new Date()
@@ -50,17 +51,36 @@ export async function GET() {
   } catch (error) {
     console.error('Error fetching availability:', error)
     
-    // Return working hours with some demo busy slots for testing
+    // Log more details for debugging
+    if (error && typeof error === 'object' && 'status' in error) {
+      console.error('Calendar API Error Details:', {
+        status: (error as unknown as { status: number }).status,
+        message: (error as unknown as { message: string }).message,
+        calendarId: process.env.GOOGLE_CALENDAR_ID,
+        serviceAccountSet: !!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL
+      })
+    }
+    
+    // Return working hours with demo busy slots for testing
+    const now = new Date()
     const demoBusySlots = [
+      // Tomorrow 2-4pm
       {
-        start: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().replace('T', 'T14:00:00').split('.')[0] + 'Z',
-        end: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().replace('T', 'T16:00:00').split('.')[0] + 'Z',
+        start: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().replace(/:\d{2}\.\d{3}Z$/, ':00:00Z').replace(/T\d{2}/, 'T14'),
+        end: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().replace(/:\d{2}\.\d{3}Z$/, ':00:00Z').replace(/T\d{2}/, 'T16'),
+      },
+      // Day after tomorrow 10-11am
+      {
+        start: new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString().replace(/:\d{2}\.\d{3}Z$/, ':00:00Z').replace(/T\d{2}/, 'T10'),
+        end: new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString().replace(/:\d{2}\.\d{3}Z$/, ':00:00Z').replace(/T\d{2}/, 'T11'),
       }
     ]
     
     return NextResponse.json({
       workingHours: WORKING_HOURS,
       busySlots: demoBusySlots,
+      error: 'Failed to fetch real calendar data, showing demo slots',
+      calendarError: error instanceof Error ? error.message : 'Unknown error'
     })
   }
 }

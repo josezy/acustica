@@ -28,6 +28,11 @@ export default function ReservarPage() {
     fetchAvailability()
   }, [])
 
+  // Reset selected time when duration changes to revalidate availability
+  useEffect(() => {
+    setSelectedTime('')
+  }, [duration])
+
   const fetchAvailability = async () => {
     try {
       const response = await fetch('/api/availability')
