@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { CalendarService } from '@/lib/calendar'
+import { authOptions } from '@/lib/auth'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getServerSession()
+  const { id } = await params
+  const session = await getServerSession(authOptions)
   
   if (!session?.accessToken) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -15,7 +17,7 @@ export async function PUT(
   try {
     const body = await request.json()
     const calendarService = new CalendarService(session.accessToken)
-    const event = await calendarService.updateEvent(params.id, body)
+    const event = await calendarService.updateEvent(id, body)
     
     return NextResponse.json(event)
   } catch (error) {
@@ -26,9 +28,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getServerSession()
+  const { id } = await params
+  const session = await getServerSession(authOptions)
   
   if (!session?.accessToken) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -36,7 +39,7 @@ export async function DELETE(
 
   try {
     const calendarService = new CalendarService(session.accessToken)
-    await calendarService.deleteEvent(params.id)
+    await calendarService.deleteEvent(id)
     
     return NextResponse.json({ success: true })
   } catch (error) {

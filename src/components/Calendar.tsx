@@ -10,7 +10,6 @@ interface CalendarProps {
 export default function Calendar({ onEventSelect }: CalendarProps) {
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
-  const [currentDate, setCurrentDate] = useState(new Date())
 
   useEffect(() => {
     fetchEvents()

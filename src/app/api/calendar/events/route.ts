@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { CalendarService } from '@/lib/calendar'
+import { authOptions } from '@/lib/auth'
 
-export async function GET(request: NextRequest) {
-  const session = await getServerSession()
+export async function GET() {
+  const session = await getServerSession(authOptions)
   
   if (!session?.accessToken) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await getServerSession()
+  const session = await getServerSession(authOptions)
   
   if (!session?.accessToken) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

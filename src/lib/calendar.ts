@@ -6,11 +6,11 @@ export interface CalendarEvent {
   description?: string
   start: {
     dateTime: string
-    timeZone: string
+    timeZone?: string
   }
   end: {
     dateTime: string
-    timeZone: string
+    timeZone?: string
   }
   creator?: {
     email: string
@@ -18,7 +18,7 @@ export interface CalendarEvent {
 }
 
 export class CalendarService {
-  private calendar: any
+  private calendar: ReturnType<typeof google.calendar>
 
   constructor(accessToken: string) {
     const oauth2Client = new google.auth.OAuth2()
@@ -37,7 +37,13 @@ export class CalendarService {
         orderBy: 'startTime',
       })
 
-      return response.data.items || []
+      const items = response.data.items || []
+      return items.filter((item): item is CalendarEvent => 
+        item.id != null && 
+        item.summary != null && 
+        item.start?.dateTime != null && 
+        item.end?.dateTime != null
+      ) as CalendarEvent[]
     } catch (error) {
       console.error('Error fetching calendar events:', error)
       throw error
@@ -48,10 +54,10 @@ export class CalendarService {
     try {
       const response = await this.calendar.events.insert({
         calendarId: process.env.GOOGLE_CALENDAR_ID,
-        resource: event,
+        requestBody: event,
       })
 
-      return response.data
+      return response.data as CalendarEvent
     } catch (error) {
       console.error('Error creating calendar event:', error)
       throw error
@@ -63,10 +69,10 @@ export class CalendarService {
       const response = await this.calendar.events.update({
         calendarId: process.env.GOOGLE_CALENDAR_ID,
         eventId,
-        resource: event,
+        requestBody: event,
       })
 
-      return response.data
+      return response.data as CalendarEvent
     } catch (error) {
       console.error('Error updating calendar event:', error)
       throw error
