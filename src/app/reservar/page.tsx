@@ -18,7 +18,11 @@ interface AvailabilityData {
 export default function ReservarPage() {
   const router = useRouter()
   const [availability, setAvailability] = useState<AvailabilityData | null>(null)
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return tomorrow
+  })
   const [selectedTime, setSelectedTime] = useState<string>('')
   const [duration, setDuration] = useState<Duration>('1h')
   const [groupSize, setGroupSize] = useState<number>(1)
@@ -119,7 +123,8 @@ export default function ReservarPage() {
     const dates = []
     const today = new Date()
     
-    for (let i = 0; i < 14; i++) {
+    // Start from tomorrow (i = 1) to require at least 1 day advance booking
+    for (let i = 1; i < 15; i++) {
       const date = new Date(today)
       date.setDate(today.getDate() + i)
       dates.push(date)
