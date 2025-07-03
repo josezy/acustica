@@ -344,6 +344,25 @@ export default function ReservarPage() {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 py-8 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="text-white mb-4 md:mb-0">
+              <p>&copy; 2024 Acústica Sala Estudio. Todos los derechos reservados.</p>
+            </div>
+            <div className="flex space-x-6 text-sm">
+              <Link href="/privacidad" className="text-gray-300 hover:text-white">
+                Política de Privacidad
+              </Link>
+              <Link href="/condiciones" className="text-gray-300 hover:text-white">
+                Términos y Condiciones
+              </Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
